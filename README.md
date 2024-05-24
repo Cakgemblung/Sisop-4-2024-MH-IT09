@@ -389,6 +389,7 @@ Screenshot hasil code
 *REVISI*
 
 ##Soal 1
+
 Karena program tidak dapat secara otomatis menjalankan dan merubah permission pada script, maka approachment yang dilakukan kali ini berbeda. Berikut adalah hasil modifikasi yang dilakukan pada bagian fungsi untuk melakukan operasi `chmod`
 ```
 static int xmp_chmod(const char *path, mode_t mode) {

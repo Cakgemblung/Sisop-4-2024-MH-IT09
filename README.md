@@ -379,6 +379,10 @@ int main(int argc, char *argv[]) {
 Struct diatas mendefinisikan operasi FUSE yang didukung oleh filesystem yang diimplementasikan dalam kode ini. Kemudian fungsi main adalah titik masuk dari program ini. Fungsi ini menginisialisasi umask dan memanggil fuse_main untuk memulai filesystem FUSE dengan operasi yang telah didefinisikan di atas.
 
 Screenshot hasil code
+![image](https://github.com/Cakgemblung/Sisop-4-2024-MH-IT09/assets/144968322/b06153f8-29a1-47e1-ad08-b77196e66d30)
+![image](https://github.com/Cakgemblung/Sisop-4-2024-MH-IT09/assets/144968322/ef7112f3-6935-4d8f-ad9f-a38e9907529b)
+![image](https://github.com/Cakgemblung/Sisop-4-2024-MH-IT09/assets/144968322/f07ab740-f2a0-4d82-babc-b7ef78773ae2)
+
 
 
 

@@ -587,4 +587,119 @@ int main(int argc, char *argv[]) {
 }
 ```
 
+## Soal 3
+
+Buat path yang akan menjadi tujuan  ```static const char *relics_path = "/home/nayyara/sisop4/relics"; ```
+
+```
+static int xmp_getattr(const char *path, struct stat *stbuf) {
+   memset(stbuf, 0, sizeof(struct stat));
+```
+Digunakan untuk mendapatkan atribut file. Pertama, buffer stbuf yang diinisialisasi dengan nol.
+
+```
+    if (strcmp(path, "/") == 0) {
+        stbuf->st_mode = S_IFDIR | 0755;
+        stbuf->st_nlink = 2;
+    } else {
+```
+Jika path adalah root ``/`` maka diatur atributnya sebagai direktori dengan permission 0755 dan jumlah link 2.
+
+```
+                while (1) {
+            snprintf(part_path, sizeof(part_path), "%s.%03d", fpath, i++);
+            fp = fopen(part_path, "rb");
+            if (!fp) break;
+```
+Fungsi diatas adalah loop untuk membuka setiap bagian file (part file). `snprintf` digunakan untuk membuat path dari setiap bagian file dengan format fpath.xxx. Jika file tidak bisa dibuka, maka loop berhenti.
+
+```
+if (i == 1) return -ENOENT;
+    }
+    return 0;
+}
+```
+Jika tidak ada potongan file yang ditemukan (i == 1), fungsi tersebut mengembalikan `-ENOENT` atau file tidak ditemukan. Jika terdapat potongan file, fungsi tersebut akan mengembalikan `0` atau sukses.
+
+```static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {```
+Fungsi tersebut akan membaca isi dari direktori.
+
+```
+while ((de = readdir(dp)) != NULL) {
+        if (strstr(de->d_name, ".000") != NULL) {
+            char base_name[256];
+            strncpy(base_name, de->d_name, strlen(de->d_name) - 4);
+            base_name[strlen(de->d_name) - 4] = '\0';
+            filler(buf, base_name, NULL, 0);
+        }
+    }
+    closedir(dp);
+    return 0;
+}
+```
+Diatas adalah Loop untuk membaca setiap entri dalam direktori. Jika nama file memiliki `.000` itu berarti file tersebut adalah bagian pertama dari suatu file multipart. Nama pertama file akan diekstraksi kemudian ditambahkan ke buffer menggunakan `filler`
+
+```static int xmp_open(const char *path, struct fuse_file_info *fi) {```
+Fungsi diatas digunakan untuk membuka file
+
+```
+while (size > 0) {
+        snprintf(part_path, sizeof(part_path), "%s.%03d", fpath, i++);
+        FILE *fp = fopen(part_path, "rb");
+        if (!fp) break;
+```
+Loop tersebut digunakan untuk membaca setiap bagian di dalam file. Path bagian file kemudian dibuat lalu file tersebut akan dibuka. Jika file tidak dapat dibuka, maka loop tersebut akan berhenti.
+
+```static int xmp_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {``` Berfungsi untuk untuk menulis data ke dalam file. 
+
+```
+static int xmp_unlink(const char *path) {
+    char fpath[1000];
+    snprintf(fpath, sizeof(fpath), "%s%s", root_path, path);
+
+    int part_num = 0;
+    char part_path[1100];
+    int res = 0;
+```
+Fungsi `xmp_unlink` untuk menghapus file. Kemudian path lengkap file dibuat lalu dilakukan inisialisasi variabel untuk hasilnya. Fungsi ini juga akan menghapus setiap pecahan file sampai tidak ada lagi pecahan yang ditemukan.
+
+```
+static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
+    (void) fi;
+    char fpath[1000];
+    snprintf(fpath, sizeof(fpath), "%s%s.000", root_path, path);
+
+    int res = creat(fpath, mode);
+    if (res == -1) return -errno;
+
+    close(res);
+    return 0;
+}
+```
+Fungsi `xmp_create` untuk membuat file baru kemudian Path lengkap untuk bagian pertama file dibuat. Jika proses tersebut gagal, maka akan mengembalikan nilai kesalahan. Jika proses tersebut berhasil dilakukan, maka file akan ditutup dan meneembalikan nilai `0`
+
+
+```
+static struct fuse_operations xmp_oper = {
+    .getattr = xmp_getattr,
+    .readdir = xmp_readdir,
+    .open = xmp_open,
+    .read = xmp_read,
+    .write = xmp_write,
+    .unlink = xmp_unlink,
+    .create = xmp_create,
+    .truncate = xmp_truncate,
+};
+```
+Fungsi tersebut akan mendefinisikan struktur fuse_operations dengan mengisi setiap operasi melalui fungsi yang telah diimplementasikan.
+
+```
+int main(int argc, char *argv[]) {
+    umask(0);
+    return fuse_main(argc, argv, &xmp_oper, NULL);
+}
+```
+Fungsi `main` diatas merupakan proses masuk ke dalam program. Mengatur umask ke 0 agar permission file tidak dipengaruhi oleh umask proses. Fungsi ini akan memanggil `fuse_main` dari data yang sudah dimasukkan dari pengguna.
+
+
 
